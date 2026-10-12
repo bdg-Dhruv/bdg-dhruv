@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b0b0f">
+<title>My Schedule</title>
+<style>
+  :root {
+    --bg: #0b0b0f;
+    --card: #14141c;
+    --border: #2a2a38;
+    --text: #f4f4f8;
+    --muted: #8b8b9e;
+    --purple: #8b5cf6;
+    --purple-light: #a78bfa;
+    --purple-dark: #6d28d9;
+    --green: #34d399;
+    --orange: #fbbf24;
+    --pink: #f472b6;
+    --blue: #60a5fa;
+    --glow: 0 0 20px rgba(139, 92, 246, 0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 90px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  header {
+    background: linear-gradient(180deg, #12121a 0%, var(--bg) 100%);
+    padding: 52px 20px 18px;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  h1 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.6px;
+    background: linear-gradient(90deg, #fff, var(--purple-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .subtitle { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+  .streak-badge {
+    background: linear-gradient(135deg, var(--purple-dark), var(--purple));
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 20px;
+    box-shadow: var(--glow);
+  }
+
+  .day-tabs {
+    display: flex;
+    gap: 6px;
+    margin-top: 16px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .day-tab {
+    flex: 0 0 auto;
+    padding: 7px 14px;
+    border-radius: 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .day-tab.active {
+    background: var(--purple);
+    border-color: var(--purple);
+    color: white;
+    box-shadow: var(--glow);
+  }
+
+  .controls {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 14px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .btn.active { background: var(--pink); border-color: var(--pink); color: white; }
+  .btn.notify {
+    background: linear-gradient(135deg, var(--purple-dark), var(--purple));
+    border: none;
+    color: white;
+  }
+
+  .content { padding: 20px 16px; }
+
+  .section-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin: 24px 0 12px;
+  }
+
+  .block {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .block.done { opacity: 0.45; }
+  .block.done .time, .block.done .title { text-decoration: line-through; }
+
+  .check {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .block.done .check {
+    background: var(--green);
+    border-color: var(--green);
+  }
+  .block.done .check::after {
+    content: "✓";
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .time { font-size: 12px; font-weight: 600; color: var(--purple-light); min-width: 90px; }
+  .title { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+  .note { font-size: 12px; color: var(--muted); line-height: 1.4; }
+
+  .special { border-left: 3px solid var(--orange); }
+  .special .time { color: var(--orange); }
+  .deep { border-left: 3px solid var(--blue); }
+  .deep .time { color: var(--blue); }
+  .side { border-left: 3px solid var(--green); }
+  .side .time { color: var(--green); }
+  .social { border-left: 3px solid var(--pink); }
+  .social .time { color: var(--pink); }
+
+  .top3 {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+  }
+
+  .top3 input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-size: 15px;
+    padding: 10px 0;
+    outline: none;
+    margin-bottom: 6px;
+  }
+  .top3 input::placeholder { color: var(--muted); }
+
+  /* Tracker extras */
+  .progress-ring-container {
+    display: flex;
+    justify-content: center;
+    margin: 10px 0 20px;
+  }
+
+  .progress-ring {
+    position: relative;
+    width: 140px;
+    height: 140px;
+  }
+
+  .progress-ring svg { transform: rotate(-90deg); }
+  .progress-ring circle { fill: none; stroke-width: 10; }
+  .progress-bg { stroke: var(--border); }
+  .progress-fg {
+    stroke: var(--purple);
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.6s ease;
+    filter: drop-shadow(0 0 6px rgba(139, 92, 246, 0.5));
+  }
+
+  .progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  .progress-percent { font-size: 28px; font-weight: 700; }
+  .progress-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .weekly-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .weekly-percent {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--purple-light);
+  }
+
+  .mood-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 16px 0;
+  }
+
+  .mood-btn {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 0;
+    font-size: 24px;
+    text-align: center;
+    transition: all 0.2s;
+  }
+
+  .mood-btn.selected {
+    border-color: var(--purple);
+    background: rgba(139, 92, 246, 0.15);
+    box-shadow: var(--glow);
+  }
+
+  .journal-box {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    color: var(--text);
+    padding: 14px;
+    font-size: 15px;
+    min-height: 90px;
+    resize: none;
+    outline: none;
+  }
+
+  .action-row {
+    display: flex;
+    gap: 10px;
+    margin: 16px 0 8px;
+  }
+
+  .action-btn {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .action-btn.primary {
+    background: linear-gradient(135deg, var(--purple-dark), var(--purple));
+    border: none;
+    color: white;
+  }
+
+  .habit-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .habit-check {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .habit-check.done {
+    background: var(--purple);
+    border-color: var(--purple);
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
+  }
+
+  .habit-check.done::after {
+    content: "✓";
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .habit-info { flex: 1; }
+  .habit-name { font-size: 15px; font-weight: 600; }
+  .habit-streak { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .habit-streak span { color: var(--purple-light); font-weight: 600; }
+
+  /* Calendar */
+  .calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .cal-nav {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cal-month { font-size: 17px; font-weight: 600; }
+
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+
+  .cal-day-name {
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 500;
+    padding: 6px 0;
+  }
+
+  .cal-day {
+    aspect-ratio: 1;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 500;
+    background: var(--card);
+    border: 1px solid transparent;
+    gap: 2px;
+  }
+
+  .cal-day.other { opacity: 0.3; }
+  .cal-day.today { border-color: var(--purple); }
+  .cal-day .day-num { font-size: 12px; color: var(--muted); }
+  .cal-day .emoji { font-size: 16px; line-height: 1; }
+
+  .cal-legend {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  /* Bottom Nav */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(15, 15, 20, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 8px 0 28px;
+    z-index: 50;
+  }
+
+  .nav-item {
+    flex: 1;
+    text-align: center;
+    padding: 8px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .nav-item.active { color: var(--purple-light); }
+  .nav-icon { font-size: 22px; margin-bottom: 2px; }
+
+  .footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 40px;
+    line-height: 1.5;
+  }
+
+  .notif-status {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  .hidden { display: none !important; }
+
+  /* Celebration */
+  .celebration {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .celebration.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .celebration-box {
+    background: var(--card);
+    border: 1px solid var(--purple);
+    border-radius: 24px;
+    padding: 40px 30px;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(139, 92, 246, 0.4);
+    max-width: 300px;
+  }
+
+  .celebration-box h2 {
+    font-size: 28px;
+    margin-bottom: 8px;
+    background: linear-gradient(90deg, #fff, var(--purple-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .celebration-box p {
+    color: var(--muted);
+    font-size: 15px;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="header-top">
+      <div>
+        <h1 id="pageTitle">Schedule</h1>
+        <div class="subtitle" id="dateLabel"></div>
+      </div>
+      <div class="streak-badge" id="streakBadge">🔥 0 day</div>
+    </div>
+
+    <div class="day-tabs" id="dayTabs"></div>
+
+    <div class="controls" id="scheduleControls">
+      <button class="btn" id="mandirBtn" onclick="toggleMandir()">Mandir on Saturday</button>
+      <button class="btn notify" onclick="enableNotifications()">Enable Alerts</button>
+    </div>
+    <div class="notif-status" id="notifStatus">Notifications: off</div>
+  </header>
+
+  <!-- SCHEDULE VIEW -->
+  <div class="content" id="view-schedule">
+    <div class="section-title">Today’s Top 3</div>
+    <div class="top3">
+      <input type="text" id="top1" placeholder="1. Most important…" oninput="saveTop3()">
+      <input type="text" id="top2" placeholder="2. Second priority…" oninput="saveTop3()">
+      <input type="text" id="top3" placeholder="3. Third priority…" oninput="saveTop3()">
+    </div>
+
+    <div class="section-title">Schedule</div>
+    <div id="schedule"></div>
+
+    <div class="footer">
+      School free time = friends / light only<br>
+      Heavy work stays at home
+    </div>
+  </div>
+
+  <!-- TRACKER VIEW -->
+  <div class="content hidden" id="view-tracker">
+    <div class="progress-ring-container">
+      <div class="progress-ring">
+        <svg width="140" height="140">
+          <circle class="progress-bg" cx="70" cy="70" r="60"></circle>
+          <circle class="progress-fg" id="progressCircle" cx="70" cy="70" r="60"
+                  stroke-dasharray="377" stroke-dashoffset="377"></circle>
+        </svg>
+        <div class="progress-text">
+          <div class="progress-percent" id="progressPercent">0%</div>
+          <div class="progress-label">today</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="weekly-card">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px">This Week</div>
+      <div class="weekly-percent" id="weeklyPercent">0%</div>
+    </div>
+
+    <div class="action-row">
+      <div class="action-btn" onclick="markAllDone()">Mark All Done</div>
+      <div class="action-btn" onclick="skipDay()">Skip Day</div>
+    </div>
+
+    <div class="section-title">How are you feeling?</div>
+    <div class="mood-row" id="moodRow">
+      <div class="mood-btn" data-mood="1">😢</div>
+      <div class="mood-btn" data-mood="2">😐</div>
+      <div class="mood-btn" data-mood="3">🙂</div>
+      <div class="mood-btn" data-mood="4">😊</div>
+      <div class="mood-btn" data-mood="5">🔥</div>
+    </div>
+
+    <div class="section-title">Daily Journal</div>
+    <textarea class="journal-box" id="journalBox" placeholder="How did today go?" oninput="saveJournal()"></textarea>
+
+    <div class="section-title">Daily Habits</div>
+    <div id="habitList"></div>
+  </div>
+
+  <!-- CALENDAR VIEW -->
+  <div class="content hidden" id="view-calendar">
+    <div class="calendar-header">
+      <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
+      <div class="cal-month" id="calMonth"></div>
+      <button class="cal-nav" onclick="changeMonth(1)">›</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-legend">
+      <span>✅ Done</span>
+      <span>❌ Missed</span>
+      <span>⏭️ Skipped</span>
+    </div>
+  </div>
+
+  <!-- Celebration Overlay -->
+  <div class="celebration" id="celebration">
+    <div class="celebration-box">
+      <h2>Locked In 🔥</h2>
+      <p>All habits completed.<br>You’re built different.</p>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="switchView('schedule')">
+      <div class="nav-icon">📅</div>
+      Schedule
+    </div>
+    <div class="nav-item" onclick="switchView('tracker')">
+      <div class="nav-icon">✓</div>
+      Tracker
+    </div>
+    <div class="nav-item" onclick="switchView('calendar')">
+      <div class="nav-icon">▦</div>
+      Calendar
+    </div>
+  </div>
+
+<script>
+  const memory = {};
+  function safeGet(key, fallback) {
+    try {
+      const val = localStorage.getItem(key);
+      return val !== null ? val : fallback;
+    } catch (e) {
+      return memory[key] !== undefined ? memory[key] : fallback;
+    }
+  }
+  function safeSet(key, value) {
+    try { localStorage.setItem(key, value); }
+    catch (e) { memory[key] = value; }
+  }
+
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  let currentDay = new Date().getDay();
+  let mandirOnSaturday = safeGet("mandirSat", "true") === "true";
+  let currentView = "schedule";
+  let calDate = new Date();
+
+  const HABITS = [
+    { id: "morning", name: "Morning Routine", icon: "🌅" },
+    { id: "deepwork", name: "Home Deep Work", icon: "📚" },
+    { id: "sidehustle", name: "Side Hustle / Trading", icon: "💰" },
+    { id: "lamar", name: "do lamar 👀👅🍑", icon: "🔥" },
+    { id: "winddown", name: "Wind-down", icon: "🌙" }
+  ];
+
+  const weekdayBase = [
+    { time: "6:15 – 6:50", title: "Wake + Morning Routine", note: "Hydrate, shower, dress, pack, set Top 3", type: "" },
+    { time: "6:50 – 7:10", title: "Leave for School", note: "", type: "" },
+    { time: "7:45 – 8:10", title: "Breakfast", note: "", type: "" },
+    { time: "8:10 – 9:30", title: "Period 1", note: "Full focus", type: "" },
+    { time: "9:30 – 1:20", title: "Free Blocks + Friends", note: "See friends, light review only if needed", type: "social" },
+    { time: "1:20 – 2:40", title: "Last Period", note: "Full focus", type: "" },
+    { time: "3:30 – 5:30", title: "Home Deep Work", note: "Homework for all classes – locked in", type: "deep" },
+    { time: "5:30 – 6:30", title: "Side Hustle / Trading", note: "Non-negotiable progress block", type: "side" },
+    { time: "6:30 – 7:30", title: "Dinner + Break", note: "", type: "" },
+    { time: "7:30 – 9:00", title: "Extra Work / Personal", note: "More practice, projects, or rest", type: "" },
+    { time: "9:00 – 9:45", title: "Wind-down", note: "Plan tomorrow + screens off", type: "" }
+  ];
+
+  function getSchedule(day) {
+    if (day >= 1 && day <= 5) {
+      let s = JSON.parse(JSON.stringify(weekdayBase));
+      if (day === 2) {
+        s = [
+          { time: "6:15 – 6:50", title: "Wake + Morning Routine", note: "", type: "" },
+          { time: "6:50 – 7:10", title: "Leave for School", note: "", type: "" },
+          { time: "7:45 – 8:10", title: "Breakfast", note: "", type: "" },
+          { time: "8:10 – 9:30", title: "Period 1", note: "", type: "" },
+          { time: "9:30 – 1:20", title: "Free Blocks + Friends", note: "Social time – light work only", type: "social" },
+          { time: "1:20 – 2:40", title: "Last Period", note: "", type: "" },
+          { time: "3:30 – 5:45", title: "Compressed Homework + Side Hustle", note: "Get the important stuff done", type: "deep" },
+          { time: "5:45 – 6:15", title: "Get Ready + Leave", note: "Dinner + change for Air Cadets", type: "special" },
+          { time: "6:30 – 9:30", title: "Air Cadets", note: "", type: "special" },
+          { time: "After 9:30", title: "Wind-down only", note: "Sleep earlier if possible", type: "" }
+        ];
+      }
+      if (day === 5) {
+        s = [
+          { time: "6:15 – 6:50", title: "Wake + Morning Routine", note: "", type: "" },
+          { time: "6:50 – 7:10", title: "Leave for School", note: "", type: "" },
+          { time: "7:45 – 8:10", title: "Breakfast", note: "", type: "" },
+          { time: "8:10 – 9:30", title: "Period 1", note: "", type: "" },
+          { time: "9:30 – 1:20", title: "Free Blocks + Friends", note: "Social time – light work only", type: "social" },
+          { time: "1:20 – 2:40", title: "Last Period", note: "", type: "" },
+          { time: "3:30 – 5:00", title: "Focused Homework", note: "Heavy work before job", type: "deep" },
+          { time: "5:00 – 5:30", title: "Leave for Work", note: "", type: "special" },
+          { time: "6:00 – 7:30", title: "Work", note: "", type: "special" },
+          { time: "After 7:30", title: "Light recovery", note: "Optional short review", type: "" }
+        ];
+      }
+      return s;
+    }
+    if (day === 6) {
+      if (mandirOnSaturday) {
+        return [
+          { time: "Morning", title: "Free / Catch-up", note: "Sleep in or light review", type: "" },
+          { time: "2:00 – 9:00", title: "Mandir", note: "", type: "special" },
+          { time: "After 9:00", title: "Wind-down", note: "", type: "" }
+        ];
+      }
+      return [
+        { time: "Morning – Afternoon", title: "Deep Work + Side Hustle", note: "Best time for heavy progress", type: "deep" },
+        { time: "Evening", title: "Free / Social / Rest", note: "", type: "social" }
+      ];
+    }
+    if (day === 0) {
+      if (!mandirOnSaturday) {
+        return [
+          { time: "Morning", title: "Free / Catch-up", note: "", type: "" },
+          { time: "2:00 – 9:00", title: "Mandir", note: "", type: "special" },
+          { time: "After 9:00", title: "Wind-down + Plan Week", note: "Set Top 3 for Monday", type: "" }
+        ];
+      }
+      return [
+        { time: "Morning – Afternoon", title: "Deep Work + Side Hustle", note: "Best time for heavy progress", type: "deep" },
+        { time: "Evening", title: "Plan next week + Rest", note: "Set Top 3 for Monday", type: "social" }
+      ];
+    }
+    return [];
+  }
+
+  // ===== DATA HELPERS =====
+  function getTodayKey() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  }
+
+  function getHabitData() {
+    try { return JSON.parse(safeGet("habits", "{}")); }
+    catch { return {}; }
+  }
+
+  function saveHabitData(data) {
+    safeSet("habits", JSON.stringify(data));
+  }
+
+  function getDayMeta() {
+    try { return JSON.parse(safeGet("dayMeta", "{}")); }
+    catch { return {}; }
+  }
+
+  function saveDayMeta(data) {
+    safeSet("dayMeta", JSON.stringify(data));
+  }
+
+  // ===== HABITS =====
+  function toggleHabit(id) {
+    const data = getHabitData();
+    const key = getTodayKey();
+    if (!data[key]) data[key] = {};
+    data[key][id] = !data[key][id];
+    saveHabitData(data);
+    renderTracker();
+    updateStreakBadge();
+    renderCalendar();
+    checkCelebration();
+  }
+
+  function markAllDone() {
+    const data = getHabitData();
+    const key = getTodayKey();
+    if (!data[key]) data[key] = {};
+    HABITS.forEach(h => data[key][h.id] = true);
+    saveHabitData(data);
+    renderTracker();
+    updateStreakBadge();
+    renderCalendar();
+    checkCelebration();
+  }
+
+  function skipDay() {
+    const meta = getDayMeta();
+    const key = getTodayKey();
+    meta[key] = meta[key] || {};
+    meta[key].skipped = true;
+    saveDayMeta(meta);
+    updateStreakBadge();
+    renderCalendar();
+    alert("Day skipped – streak protected ✅");
+  }
+
+  function getStreak(habitId) {
+    const data = getHabitData();
+    let streak = 0;
+    let d = new Date();
+    for (let i = 0; i < 365; i++) {
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+      if (data[key] && data[key][habitId]) {
+        streak++;
+        d.setDate(d.getDate() - 1);
+      } else break;
+    }
+    return streak;
+  }
+
+  function isDaySuccessful(key) {
+    const data = getHabitData();
+    const meta = getDayMeta();
+    if (meta[key] && meta[key].skipped) return true;
+    const dayData = data[key] || {};
+    return HABITS.filter(h => dayData[h.id]).length >= 3;
+  }
+
+  function getOverallStreak() {
+    let streak = 0;
+    let d = new Date();
+    for (let i = 0; i < 365; i++) {
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+      if (isDaySuccessful(key)) {
+        streak++;
+        d.setDate(d.getDate() - 1);
+      } else break;
+    }
+    return streak;
+  }
+
+  function getWeeklyPercent() {
+    let success = 0;
+    let d = new Date();
+    for (let i = 0; i < 7; i++) {
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+      if (isDaySuccessful(key)) success++;
+      d.setDate(d.getDate() - 1);
+    }
+    return Math.round((success / 7) * 100);
+  }
+
+  function updateStreakBadge() {
+    const s = getOverallStreak();
+    document.getElementById("streakBadge").textContent = `🔥 ${s} day${s !== 1 ? "s" : ""}`;
+  }
+
+  // ===== MOOD & JOURNAL =====
+  function saveMood(mood) {
+    const meta = getDayMeta();
+    const key = getTodayKey();
+    meta[key] = meta[key] || {};
+    meta[key].mood = mood;
+    saveDayMeta(meta);
+    document.querySelectorAll(".mood-btn").forEach(btn => {
+      btn.classList.toggle("selected", btn.dataset.mood === String(mood));
+    });
+  }
+
+  function loadMood() {
+    const meta = getDayMeta();
+    const key = getTodayKey();
+    const mood = meta[key] && meta[key].mood;
+    document.querySelectorAll(".mood-btn").forEach(btn => {
+      btn.classList.toggle("selected", btn.dataset.mood === String(mood));
+    });
+  }
+
+  function saveJournal() {
+    const meta = getDayMeta();
+    const key = getTodayKey();
+    meta[key] = meta[key] || {};
+    meta[key].journal = document.getElementById("journalBox").value;
+    saveDayMeta(meta);
+  }
+
+  function loadJournal() {
+    const meta = getDayMeta();
+    const key = getTodayKey();
+    document.getElementById("journalBox").value = (meta[key] && meta[key].journal) || "";
+  }
+
+  // ===== CELEBRATION =====
+  function checkCelebration() {
+    const data = getHabitData();
+    const key = getTodayKey();
+    const dayData = data[key] || {};
+    const allDone = HABITS.every(h => dayData[h.id]);
+    if (allDone) {
+      const el = document.getElementById("celebration");
+      el.classList.add("show");
+      setTimeout(() => el.classList.remove("show"), 2500);
+    }
+  }
+
+  // ===== RENDER TRACKER =====
+  function renderTracker() {
+    const data = getHabitData();
+    const key = getTodayKey();
+    const todayData = data[key] || {};
+    const completed = HABITS.filter(h => todayData[h.id]).length;
+    const percent = Math.round((completed / HABITS.length) * 100);
+
+    const circle = document.getElementById("progressCircle");
+    const circumference = 2 * Math.PI * 60;
+    circle.style.strokeDasharray = circumference;
+    circle.style.strokeDashoffset = circumference - (percent / 100) * circumference;
+    document.getElementById("progressPercent").textContent = percent + "%";
+
+    document.getElementById("weeklyPercent").textContent = getWeeklyPercent() + "%";
+
+    const list = document.getElementById("habitList");
+    list.innerHTML = "";
+    HABITS.forEach(h => {
+      const done = !!todayData[h.id];
+      const streak = getStreak(h.id);
+      const div = document.createElement("div");
+      div.className = "habit-card";
+      div.innerHTML = `
+        <div class="habit-check ${done ? "done" : ""}"></div>
+        <div class="habit-info">
+          <div class="habit-name">${h.icon} ${h.name}</div>
+          <div class="habit-streak">Current streak: <span>${streak} day${streak !== 1 ? "s" : ""}</span></div>
+        </div>
+      `;
+      div.onclick = () => toggleHabit(h.id);
+      list.appendChild(div);
+    });
+
+    loadMood();
+    loadJournal();
+  }
+
+  // ===== CALENDAR =====
+  function renderCalendar() {
+    const year = calDate.getFullYear();
+    const month = calDate.getMonth();
+    document.getElementById("calMonth").textContent =
+      calDate.toLocaleDateString("en-CA", { month: "long", year: "numeric" });
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const data = getHabitData();
+    const meta = getDayMeta();
+    const todayKey = getTodayKey();
+    const today = new Date();
+
+    const grid = document.getElementById("calGrid");
+    grid.innerHTML = "";
+
+    ["S","M","T","W","T","F","S"].forEach(d => {
+      const el = document.createElement("div");
+      el.className = "cal-day-name";
+      el.textContent = d;
+      grid.appendChild(el);
+    });
+
+    for (let i = 0; i < firstDay; i++) {
+      const el = document.createElement("div");
+      el.className = "cal-day other";
+      grid.appendChild(el);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const key = `${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+      const thisDate = new Date(year, month, d);
+      const isFuture = thisDate > today;
+
+      let emoji = "";
+      if (!isFuture) {
+        if (meta[key] && meta[key].skipped) emoji = "⏭️";
+        else if (isDaySuccessful(key)) emoji = "✅";
+        else emoji = "❌";
+      }
+
+      const el = document.createElement("div");
+      el.className = "cal-day";
+      if (key === todayKey) el.classList.add("today");
+      el.innerHTML = `
+        <div class="day-num">${d}</div>
+        <div class="emoji">${emoji}</div>
+      `;
+      grid.appendChild(el);
+    }
+  }
+
+  function changeMonth(dir) {
+    calDate.setMonth(calDate.getMonth() + dir);
+    renderCalendar();
+  }
+
+  // ===== SCHEDULE =====
+  function loadState() {
+    try { return JSON.parse(safeGet(`done-${currentDay}`, "{}")); }
+    catch { return {}; }
+  }
+  function saveState(state) {
+    safeSet(`done-${currentDay}`, JSON.stringify(state));
+  }
+  function saveTop3() {
+    safeSet("top3", JSON.stringify({
+      1: document.getElementById("top1").value,
+      2: document.getElementById("top2").value,
+      3: document.getElementById("top3").value
+    }));
+  }
+  function loadTop3() {
+    try {
+      const data = JSON.parse(safeGet("top3", "{}"));
+      document.getElementById("top1").value = data[1] || "";
+      document.getElementById("top2").value = data[2] || "";
+      document.getElementById("top3").value = data[3] || "";
+    } catch {}
+  }
+
+  function toggleMandir() {
+    mandirOnSaturday = !mandirOnSaturday;
+    safeSet("mandirSat", mandirOnSaturday);
+    updateMandirBtn();
+    renderSchedule();
+  }
+  function updateMandirBtn() {
+    const btn = document.getElementById("mandirBtn");
+    btn.textContent = mandirOnSaturday ? "Mandir on Saturday" : "Mandir on Sunday";
+    btn.classList.toggle("active", !mandirOnSaturday);
+  }
+
+  function renderTabs() {
+    const container = document.getElementById("dayTabs");
+    container.innerHTML = "";
+    days.forEach((d, i) => {
+      const tab = document.createElement("div");
+      tab.className = "day-tab" + (i === currentDay ? " active" : "");
+      tab.textContent = d;
+      tab.onclick = () => {
+        currentDay = i;
+        renderTabs();
+        renderSchedule();
+      };
+      container.appendChild(tab);
+    });
+  }
+
+  function renderSchedule() {
+    const container = document.getElementById("schedule");
+    const state = loadState();
+    const schedule = getSchedule(currentDay);
+    container.innerHTML = "";
+    schedule.forEach((item, idx) => {
+      const div = document.createElement("div");
+      div.className = "block " + (item.type || "") + (state[idx] ? " done" : "");
+      div.innerHTML = `
+        <div class="check"></div>
+        <div>
+          <div class="time">${item.time}</div>
+          <div class="title">${item.title}</div>
+          ${item.note ? `<div class="note">${item.note}</div>` : ""}
+        </div>
+      `;
+      div.onclick = () => {
+        state[idx] = !state[idx];
+        saveState(state);
+        renderSchedule();
+      };
+      container.appendChild(div);
+    });
+  }
+
+  function switchView(view) {
+    currentView = view;
+    document.getElementById("view-schedule").classList.toggle("hidden", view !== "schedule");
+    document.getElementById("view-tracker").classList.toggle("hidden", view !== "tracker");
+    document.getElementById("view-calendar").classList.toggle("hidden", view !== "calendar");
+    document.getElementById("scheduleControls").classList.toggle("hidden", view !== "schedule");
+    document.getElementById("dayTabs").classList.toggle("hidden", view !== "schedule");
+
+    document.querySelectorAll(".nav-item").forEach((el, i) => {
+      el.classList.toggle("active", ["schedule","tracker","calendar"][i] === view);
+    });
+
+    const titles = { schedule: "Schedule", tracker: "Tracker", calendar: "Calendar" };
+    document.getElementById("pageTitle").textContent = titles[view];
+
+    if (view === "tracker") renderTracker();
+    if (view === "calendar") renderCalendar();
+  }
+
+  // Notifications
+  let notifEnabled = false;
+  function enableNotifications() {
+    if (!("Notification" in window)) {
+      alert("Notifications not supported here.");
+      return;
+    }
+    Notification.requestPermission().then(permission => {
+      if (permission === "granted") {
+        notifEnabled = true;
+        safeSet("notif", "1");
+        document.getElementById("notifStatus").textContent = "Notifications: on";
+        new Notification("Schedule Alerts On", { body: "I’ll remind you about your blocks & habits." });
+      } else {
+        document.getElementById("notifStatus").textContent = "Notifications: permission denied";
+      }
+    });
+  }
+
+  function checkUpcoming() {
+    if (!notifEnabled || Notification.permission !== "granted") return;
+    const now = new Date();
+    const mins = now.getHours() * 60 + now.getMinutes();
+    const schedule = getSchedule(currentDay);
+    schedule.forEach(item => {
+      const match = item.time.match(/(\d{1,2}):(\d{2})/);
+      if (!match) return;
+      let h = parseInt(match[1]);
+      let m = parseInt(match[2]);
+      if (h < 7) h += 12;
+      const startMins = h * 60 + m;
+      if (startMins - mins === 5) {
+        new Notification("Upcoming: " + item.title, {
+          body: item.time + (item.note ? " – " + item.note : ""),
+          tag: item.title
+        });
+      }
+    });
+  }
+
+  // Mood buttons
+  document.querySelectorAll(".mood-btn").forEach(btn => {
+    btn.addEventListener("click", () => saveMood(btn.dataset.mood));
+  });
+
+  // Init
+  if (safeGet("notif", "0") === "1" && Notification.permission === "granted") {
+    notifEnabled = true;
+    document.getElementById("notifStatus").textContent = "Notifications: on";
+  }
+
+  document.getElementById("dateLabel").textContent =
+    new Date().toLocaleDateString("en-CA", { weekday: "long", month: "short", day: "numeric" });
+
+  updateMandirBtn();
+  renderTabs();
+  renderSchedule();
+  loadTop3();
+  updateStreakBadge();
+  renderTracker();
+  renderCalendar();
+
+  setInterval(checkUpcoming, 60000);
+  checkUpcoming();
+</script>
+</body>
+</html>
